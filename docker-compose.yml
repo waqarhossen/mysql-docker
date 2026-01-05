@@ -68,6 +68,6 @@ volumes:
 
 networks:
   web:
-    external: true
+    driver: bridge
   mysql_network:
     driver: bridge
