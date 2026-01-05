@@ -1,6 +1,33 @@
 version: '3.8'
 
 services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.email=ceh.waqar@gmail.com
+      - --certificatesresolvers.letsencrypt.acme.storage=/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./acme.json:/acme.json
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`auto.waqarh.com`)
+      - traefik.http.routers.traefik.tls.certresolver=letsencrypt
+      - traefik.http.services.traefik.loadbalancer.server.port=8080
+    networks:
+      - web
+
   mysql:
     image: mysql:8.0
     container_name: mysql_db
@@ -10,12 +37,10 @@ services:
       MYSQL_DATABASE: n8n_db
       MYSQL_USER: n8n_user
       MYSQL_PASSWORD: your_secure_password
-    ports:
-      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./init:/docker-entrypoint-initdb.d
     networks:
+      - web
       - mysql_network
 
   phpmyadmin:
@@ -26,16 +51,23 @@ services:
       PMA_HOST: mysql
       PMA_PORT: 3306
       MYSQL_ROOT_PASSWORD: your_secure_root_password
-    ports:
-      - "8080:80"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.phpmyadmin.rule=Host(`db.auto.waqarh.com`)
+      - traefik.http.routers.phpmyadmin.tls.certresolver=letsencrypt
+      - traefik.http.services.phpmyadmin.loadbalancer.server.port=80
     depends_on:
       - mysql
+      - traefik
     networks:
+      - web
       - mysql_network
 
 volumes:
   mysql_data:
 
 networks:
+  web:
+    external: true
   mysql_network:
     driver: bridge
