@@ -33,10 +33,10 @@ services:
     container_name: mysql_db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: your_secure_root_password
+      MYSQL_ROOT_PASSWORD: MySecureRoot123!
       MYSQL_DATABASE: n8n_db
       MYSQL_USER: n8n_user
-      MYSQL_PASSWORD: your_secure_password
+      MYSQL_PASSWORD: N8nUser123!
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -50,7 +50,7 @@ services:
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
-      MYSQL_ROOT_PASSWORD: your_secure_root_password
+      MYSQL_ROOT_PASSWORD: MySecureRoot123!
     labels:
       - traefik.enable=true
       - traefik.http.routers.phpmyadmin.rule=Host(`db.auto.waqarh.com`)
